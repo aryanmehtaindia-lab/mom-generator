@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F8FAFC;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --accent: #7C3AED;
+  --text: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --danger: #EF4444;
+  --success: #10B981;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Card hover */
+.card-elevated {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(79, 70, 229, 0.08);
+}
+
+/* Button hover */
+.btn-scale {
+  transition: all 0.15s ease;
+}
+.btn-scale:hover {
+  transform: scale(1.05);
+}
+.btn-scale:active {
+  transform: scale(0.97);
+}
+
+/* Gradient button */
+.btn-gradient {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  transition: all 0.2s ease;
+}
+.btn-gradient:hover {
+  background: linear-gradient(135deg, #4338CA, #6D28D9);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
