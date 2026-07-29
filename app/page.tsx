@@ -1,13 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useMeetings } from "./context/MeetingContext";
 import { generatePDF } from "./utils/generatePDF";
 import { generateDOCX } from "./utils/generateDOCX";
-import { Plus, FileText, FileDown, Trash2, User, Briefcase, MapPin, Calendar, Package } from "lucide-react";
+import { Plus, FileText, FileDown, Trash2, User, Briefcase, MapPin, Calendar, Package, ChevronDown } from "lucide-react";
+
+const USERS = ["All Users", "Aryan Patel", "Nagji Chauhan"];
 
 export default function Dashboard() {
   const { meetings, deleteMeeting } = useMeetings();
+  const [selectedUser, setSelectedUser] = useState("All Users");
+
+  const filteredMeetings = selectedUser === "All Users"
+    ? meetings
+    : meetings.filter((m) => m.participant === selectedUser);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -29,7 +37,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-[1200px] mx-auto px-6 py-8">
-        {meetings.length === 0 ? (
+        {filteredMeetings.length === 0 && meetings.length === 0 ? (
           <div className="text-center py-24">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-[#EEF2FF] flex items-center justify-center mb-5">
               <FileText size={28} className="text-[#4F46E5]" />
@@ -43,18 +51,39 @@ export default function Dashboard() {
           </div>
         ) : (
           <div>
-            {/* Page Title */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-[#111827] tracking-tight">All Meetings</h2>
-                <span className="bg-[#EEF2FF] text-[#4F46E5] text-xs font-semibold px-2.5 py-1 rounded-full">{meetings.length}</span>
+            {/* Page Title + User Filter */}
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-[#111827] tracking-tight">All Meetings</h2>
+                  <span className="bg-[#EEF2FF] text-[#4F46E5] text-xs font-semibold px-2.5 py-1 rounded-full">{filteredMeetings.length}</span>
+                </div>
+                <p className="text-[13px] text-[#6B7280] mt-1">Manage and generate meeting reports</p>
               </div>
-              <p className="text-[13px] text-[#6B7280] mt-1">Manage and generate meeting reports</p>
+
+              {/* User Filter Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedUser}
+                  onChange={(e) => setSelectedUser(e.target.value)}
+                  className="appearance-none bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 pr-10 text-[13px] font-medium text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/15 focus:border-[#4F46E5] cursor-pointer shadow-sm"
+                >
+                  {USERS.map((user) => (
+                    <option key={user} value={user}>{user}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none" />
+              </div>
             </div>
 
             {/* Meeting Cards */}
+            {filteredMeetings.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-[#6B7280] text-sm">No meetings found for <span className="font-semibold">{selectedUser}</span></p>
+              </div>
+            ) : (
             <div className="space-y-4">
-              {meetings.map((meeting) => {
+              {filteredMeetings.map((meeting) => {
                 const hasRemarks = meeting.remarks && meeting.remarks.length > 0;
                 const statusText = hasRemarks && meeting.remarks.toLowerCase().includes("demo completed") ? "Demo Completed" : "Draft";
                 const statusColor = statusText === "Demo Completed" ? "bg-emerald-500" : "bg-amber-400";
@@ -68,6 +97,10 @@ export default function Dashboard() {
                         <div className="flex items-center gap-2.5 mb-3">
                           <span className={`w-2 h-2 rounded-full ${statusColor}`}></span>
                           <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider">{statusText}</span>
+                          <span className="text-[11px] text-[#D1D5DB]">•</span>
+                          <span className="text-[11px] font-medium text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-full">
+                            {meeting.participant}
+                          </span>
                         </div>
 
                         <h3 className="text-[22px] font-bold text-[#111827] tracking-tight leading-tight mb-3">
@@ -145,6 +178,7 @@ export default function Dashboard() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
       </main>
