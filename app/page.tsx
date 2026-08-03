@@ -6,6 +6,7 @@ import { useMeetings } from "./context/MeetingContext";
 import { generatePDF } from "./utils/generatePDF";
 import { generateDOCX } from "./utils/generateDOCX";
 import { Plus, FileText, FileDown, Trash2, User, Briefcase, MapPin, Calendar, Package, ChevronDown } from "lucide-react";
+import { formatDate } from "./utils/formatDate";
 
 const USERS = ["All Users", "Aryan Patel", "Nagji Chauhan"];
 
@@ -130,7 +131,7 @@ export default function Dashboard() {
                           {meeting.meetingDate && (
                             <span className="flex items-center gap-1.5">
                               <Calendar size={14} className="text-[#9CA3AF]" />
-                              {meeting.meetingDate}
+                              {formatDate(meeting.meetingDate)}
                             </span>
                           )}
                           {meeting.plan && (

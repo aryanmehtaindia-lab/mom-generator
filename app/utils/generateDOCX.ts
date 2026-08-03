@@ -1,6 +1,7 @@
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType } from "docx";
 import { saveAs } from "file-saver";
 import { MeetingData } from "../types";
+import { formatDate } from "./formatDate";
 
 export async function generateDOCX(data: MeetingData) {
   const border = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
@@ -59,7 +60,7 @@ export async function generateDOCX(data: MeetingData) {
           rows: [
             makeRow("1", "Participants (from our side)", data.participant),
             makeRow("2", "Time of meeting", data.meetingTime),
-            makeRow("3", "Date of meeting", data.meetingDate),
+            makeRow("3", "Date of meeting", formatDate(data.meetingDate)),
           ],
           width: { size: 9000, type: WidthType.DXA },
         }),
@@ -109,7 +110,7 @@ export async function generateDOCX(data: MeetingData) {
         new Paragraph({ spacing: { before: 400 }, children: [] }),
         new Table({
           rows: [
-            makeRow("", "Next follow update", data.nextFollowUpDate),
+            makeRow("", "Next follow update", formatDate(data.nextFollowUpDate)),
             makeRow("", "Remarks", data.remarks),
           ],
           width: { size: 9000, type: WidthType.DXA },
@@ -126,5 +127,5 @@ export async function generateDOCX(data: MeetingData) {
   });
 
   const blob = await Packer.toBlob(doc);
-  saveAs(blob, `MOM-${data.companyName || "Meeting"}-${data.meetingDate}.docx`);
+  saveAs(blob, `MOM-${data.companyName || "Meeting"}-${formatDate(data.meetingDate)}.docx`);
 }

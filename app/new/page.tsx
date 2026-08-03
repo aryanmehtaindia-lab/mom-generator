@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { useMeetings } from "../context/MeetingContext";
@@ -8,7 +8,7 @@ import { MeetingData, emptyMeeting } from "../types";
 import { generatePDF } from "../utils/generatePDF";
 import { generateDOCX } from "../utils/generateDOCX";
 import Link from "next/link";
-import { ArrowLeft, Save, FileText, FileDown } from "lucide-react";
+import { ArrowLeft, Save, FileText, FileDown, Sparkles } from "lucide-react";
 
 function InputField({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (val: string) => void; placeholder?: string; type?: string;
@@ -49,6 +49,8 @@ export default function NewMeeting() {
   const { addMeeting } = useMeetings();
   const [form, setForm] = useState(emptyMeeting);
   const [saved, setSaved] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   const update = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -73,6 +75,43 @@ export default function NewMeeting() {
   const handleSaveAndDOCX = () => {
     const meeting = handleSave();
     generateDOCX(meeting);
+  };
+
+  const handleGenerateRemark = async () => {
+    setAiLoading(true);
+    setAiError("");
+    update("remarks", "");
+
+    try {
+      const res = await fetch("/api/generate-remark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setAiError(err.error || "Failed to generate remark.");
+        setAiLoading(false);
+        return;
+      }
+
+      // Stream the text chunk by chunk into the remarks field
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        update("remarks", accumulated);
+      }
+    } catch {
+      setAiError("Network error. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   if (saved) {
@@ -190,7 +229,25 @@ export default function NewMeeting() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField label="Next Follow-up Date" value={form.nextFollowUpDate} onChange={(v) => update("nextFollowUpDate", v)} type="date" />
             <div className="md:col-span-2">
-              <label className="text-[12px] font-semibold text-[#374151] block mb-1.5 tracking-wide">Remarks</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[12px] font-semibold text-[#374151] tracking-wide">Remarks</label>
+                <button
+                  type="button"
+                  onClick={handleGenerateRemark}
+                  disabled={aiLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all
+                    bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-sm
+                    hover:from-violet-600 hover:to-indigo-600 hover:shadow-md
+                    disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
+                  title="Generate remark using AI based on the form data"
+                >
+                  <Sparkles size={12} className={aiLoading ? "animate-spin" : ""} />
+                  {aiLoading ? "Generating…" : "AI Generate"}
+                </button>
+              </div>
+              {aiError && (
+                <p className="text-[11px] text-red-500 mb-1.5">{aiError}</p>
+              )}
               <textarea
                 value={form.remarks}
                 onChange={(e) => update("remarks", e.target.value)}
