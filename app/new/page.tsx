@@ -8,7 +8,7 @@ import { MeetingData, emptyMeeting } from "../types";
 import { generatePDF } from "../utils/generatePDF";
 import { generateDOCX } from "../utils/generateDOCX";
 import Link from "next/link";
-import { ArrowLeft, Save, FileText, FileDown, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, FileText, FileDown, Sparkles, Calendar } from "lucide-react";
 
 function InputField({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (val: string) => void; placeholder?: string; type?: string;
@@ -23,6 +23,82 @@ function InputField({ label, value, onChange, placeholder, type = "text" }: {
         placeholder={placeholder}
         className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] text-[14px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/15 focus:border-[#4F46E5] transition-all placeholder:text-[#D1D5DB]"
       />
+    </div>
+  );
+}
+
+/**
+ * DateField — stores value as YYYY-MM-DD internally (ISO),
+ * but displays and accepts input as DD/MM/YYYY.
+ * A hidden <input type="date"> is used to open the native calendar picker.
+ */
+function DateField({ label, value, onChange }: {
+  label: string; value: string; onChange: (val: string) => void;
+}) {
+  const hiddenRef = useRef<HTMLInputElement>(null);
+
+  // Convert stored ISO → display DD/MM/YYYY
+  const toDisplay = (iso: string) => {
+    if (!iso) return "";
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
+  };
+
+  // Convert display DD/MM/YYYY → ISO for storage
+  const toISO = (display: string) => {
+    const m = display.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : display;
+  };
+
+  // Auto-insert slashes as user types
+  const handleTextChange = (raw: string) => {
+    // Strip non-digits
+    const digits = raw.replace(/\D/g, "").slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 2) formatted = digits.slice(0, 2) + "/" + digits.slice(2);
+    if (digits.length > 4) formatted = digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+    onChange(toISO(formatted.length === 10 ? formatted : formatted));
+    // Store partial as-is during typing (non-ISO), will be ISO only when complete
+  };
+
+  // When native date picker changes, update ISO value
+  const handlePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value); // already ISO
+  };
+
+  const displayValue = toDisplay(value);
+
+  return (
+    <div>
+      <label className="text-[12px] font-semibold text-[#374151] block mb-1.5 tracking-wide">{label}</label>
+      <div className="relative">
+        <input
+          type="text"
+          value={displayValue}
+          onChange={(e) => handleTextChange(e.target.value)}
+          placeholder="DD/MM/YYYY"
+          maxLength={10}
+          className="w-full px-4 py-3 pr-11 rounded-xl border border-[#E5E7EB] text-[14px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/15 focus:border-[#4F46E5] transition-all placeholder:text-[#D1D5DB]"
+        />
+        {/* Calendar icon — clicking opens the hidden native picker */}
+        <button
+          type="button"
+          onClick={() => hiddenRef.current?.showPicker?.()}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#4F46E5] transition-colors"
+          tabIndex={-1}
+        >
+          <Calendar size={16} />
+        </button>
+        {/* Hidden native date input for the calendar picker */}
+        <input
+          ref={hiddenRef}
+          type="date"
+          value={value.match(/^\d{4}-\d{2}-\d{2}$/) ? value : ""}
+          onChange={handlePickerChange}
+          className="absolute inset-0 opacity-0 pointer-events-none w-full h-full"
+          tabIndex={-1}
+        />
+      </div>
     </div>
   );
 }
@@ -171,7 +247,7 @@ export default function NewMeeting() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SelectField label="Participant (from our side)" value={form.participant} onChange={(v) => update("participant", v)} options={["Aryan Patel", "Nagji Chauhan"]} />
-            <InputField label="Meeting Date" value={form.meetingDate} onChange={(v) => update("meetingDate", v)} type="date" />
+            <DateField label="Meeting Date" value={form.meetingDate} onChange={(v) => update("meetingDate", v)} />
             <InputField label="Meeting Time" value={form.meetingTime} onChange={(v) => update("meetingTime", v)} type="time" />
           </div>
         </section>
@@ -227,7 +303,7 @@ export default function NewMeeting() {
             Next Steps
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField label="Next Follow-up Date" value={form.nextFollowUpDate} onChange={(v) => update("nextFollowUpDate", v)} type="date" />
+            <DateField label="Next Follow-up Date" value={form.nextFollowUpDate} onChange={(v) => update("nextFollowUpDate", v)} />
             <div className="md:col-span-2">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-[12px] font-semibold text-[#374151] tracking-wide">Remarks</label>
