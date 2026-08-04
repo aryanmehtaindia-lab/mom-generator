@@ -132,24 +132,36 @@ export default function NewMeeting() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const meeting: MeetingData = {
       ...form,
       id: uuidv4(),
       createdAt: new Date().toISOString(),
     };
-    addMeeting(meeting);
+    await addMeeting(meeting);
     setSaved(true);
     return meeting;
   };
 
   const handleSaveAndPDF = async () => {
-    const meeting = handleSave();
+    const meeting: MeetingData = {
+      ...form,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    };
+    await addMeeting(meeting);
+    setSaved(true);
     await generatePDF(meeting);
   };
 
-  const handleSaveAndDOCX = () => {
-    const meeting = handleSave();
+  const handleSaveAndDOCX = async () => {
+    const meeting: MeetingData = {
+      ...form,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    };
+    await addMeeting(meeting);
+    setSaved(true);
     generateDOCX(meeting);
   };
 

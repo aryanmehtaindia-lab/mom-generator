@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
     "docx": "^9.7.1",
     "file-saver": "^2.0.5",
     "jspdf": "^4.2.1",

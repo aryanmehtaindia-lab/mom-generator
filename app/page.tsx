@@ -11,12 +11,23 @@ import { formatDate } from "./utils/formatDate";
 const USERS = ["All Users", "Aryan Patel", "Nagji Chauhan"];
 
 export default function Dashboard() {
-  const { meetings, deleteMeeting } = useMeetings();
+  const { meetings, loading, deleteMeeting } = useMeetings();
   const [selectedUser, setSelectedUser] = useState("All Users");
 
   const filteredMeetings = selectedUser === "All Users"
     ? meetings
     : meetings.filter((m) => m.participant === selectedUser);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-[#6B7280] text-sm">Loading meetings…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
